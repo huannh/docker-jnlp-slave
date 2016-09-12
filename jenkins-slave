@@ -27,6 +27,11 @@
 # * JENKINS_TUNNEL : HOST:PORT for a tunnel to route TCP traffic to jenkins host, when jenkins can't be directly accessed over network
 # * JENKINS_URL : alternate jenkins URL
 
+if [ "$DOCKER_GID" ]; then
+    groupadd -g $DOCKER_GID docker
+    usermod -a -G docker jenkins-slave
+fi
+    
 if [ $# -eq 1 ]; then
 
 	# if `docker run` only has one arguments, we assume user is running alternate command like `bash` to inspect the image
@@ -50,5 +55,5 @@ else
 		JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=true"
 	fi
 
-	exec java $JAVA_OPTS $JNLP_PROTOCOL_OPTS -cp /usr/share/jenkins/slave.jar hudson.remoting.jnlp.Main -headless $TUNNEL $URL "$@"
+	set -- gosu jenkins java $JAVA_OPTS $JNLP_PROTOCOL_OPTS -cp /usr/share/jenkins/slave.jar hudson.remoting.jnlp.Main -headless $TUNNEL $URL "$@"
 fi
